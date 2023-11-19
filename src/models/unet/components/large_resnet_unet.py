@@ -1,12 +1,15 @@
+import pyrootutils
+
+pyrootutils.setup_root(__file__, indicator=".project-root", pythonpath=True)
+
 import torch
 import torch.nn.functional as F
 from torchvision.models import (
-    ResNet34_Weights,
-    resnet34,
+    ResNet50_Weights,
+    ResNet101_Weights,
+    resnet50,
+    resnet101,
 )
-
-from models.classifier.classifier_module import ResNetLitModule
-from models.unet.components.resnet34 import ResNet34_Binary
 
 class Resnet(torch.nn.Module):
     def __init__(self, sequence: torch.nn.Sequential) -> None:
@@ -37,31 +40,33 @@ class UNet_Up_Block(torch.nn.Module):
         cat_p = torch.cat([up_p, x_p], dim=1)
         return self.bn(F.relu(cat_p))
 
-class Unet34(torch.nn.Module):
-    def __init__(self, ckpt_path=None):
+class LargeResNetUNet(torch.nn.Module):
+    def __init__(self, arch):
         super().__init__()
-        self.ckpt_path = ckpt_path
-        if self.ckpt_path is not None:
-            model = ResNetLitModule.load_from_checkpoint(
-                checkpoint_path=self.ckpt_path,
-                net=ResNet34_Binary(),
-                criterion=torch.nn.BCEWithLogitsLoss(),
-            ).net
-            p_rn34_feature_extractor = torch.nn.Sequential(*list(model.rn.children())[:-2])
-            self.rn = p_rn34_feature_extractor
-            print("Using pretrained classifier")
+        self.arch = arch
+        if self.arch == "resnet50":
+            rn50 = resnet50(weights=ResNet50_Weights.DEFAULT)
+            rn50_feature_extractor = torch.nn.Sequential(*list(rn50.children())[:-2])
+            self.rn = rn50_feature_extractor
+            print("Using torchvision.models ResNet50")
+        elif self.arch == "resnet101":
+            rn101 = resnet101(weights=ResNet101_Weights.DEFAULT)
+            rn101_feature_extractor = torch.nn.Sequential(*list(rn101.children())[:-2])
+            self.rn = rn101_feature_extractor
+            print("Using torchvision.models ResNet101")
         else:
-            rn34 = resnet34(weights=ResNet34_Weights.DEFAULT)
-            rn34_feature_extractor = torch.nn.Sequential(*list(rn34.children())[:-2])
-            self.rn = rn34_feature_extractor
-            print("Using torchvision.models ResNet34")
+            rn50 = resnet50(weights=ResNet50_Weights.DEFAULT)
+            rn50_feature_extractor = torch.nn.Sequential(*list(rn50.children())[:-2])
+            self.rn = rn50_feature_extractor
+            print("arch input is not valid. Using ResNet50 as default.")
             
         self.sfs = Resnet(self.rn)
-        self.up1 = UNet_Up_Block(512, 256, 256)
-        self.up2 = UNet_Up_Block(256, 128, 256)
-        self.up3 = UNet_Up_Block(256, 64, 256)
-        self.up4 = UNet_Up_Block(256, 64, 256)
-        self.up5 = torch.nn.ConvTranspose2d(256, 1, 2, stride=2)
+        self.up1 = UNet_Up_Block(2048, 1024, 2048)
+        self.up2 = UNet_Up_Block(2048, 512, 2048)
+        self.up3 = UNet_Up_Block(2048, 256, 1024)
+        self.up4 = UNet_Up_Block(1024, 64, 1024)
+        self.up5 = torch.nn.ConvTranspose2d(1024, 1, 2, stride=2)
+        
 
     def forward(self, x):
         encoder_output = self.sfs(x)
@@ -75,7 +80,7 @@ class Unet34(torch.nn.Module):
 
 if __name__ == "__main__":
     x = torch.rand((1, 3, 256, 256))
-    model = Unet34()
+    model = LargeResNetUNet(arch="resnet101")
     print(model(x).shape)
     print(model(x).min())  # 'torch.Size([1, 1, 256, 256])
     print(model(x).max())
