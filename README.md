@@ -31,5 +31,5 @@ Some implemented loss functions: LossBinary (BCE + Jaccard), Dice Loss, Focal Lo
 - Run `python src/train.py` to start training the model.
 
 ## Optional: Deploy with Triton and CVAT
-- Checkpoints: https://drive.google.com/file/d/1BKEtCd3AjOtt2u7DYAUlouIiYQILgCPL/view?usp=sharing
+- Checkpoints model U-Net34 + Lovasz Loss + size 768x768 + subset 12000: https://drive.google.com/file/d/1BKEtCd3AjOtt2u7DYAUlouIiYQILgCPL/view?usp=sharing
 - Read README.md in folder triton/ and cvat/ for more details
