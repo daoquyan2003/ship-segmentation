@@ -1,5 +1,11 @@
 # Ship Segmentation on Satellite Images using various U-Net models
 
+## Members
+- Đào Quý An - 21020602
+- Dương Quang Minh - 21020219
+- Lê Văn Bảo - 21020171
+- Tống Minh Trí - 21020249
+
 ## Description
 
 Mid-Term Project for Computer Vision Class INT3412E 20
@@ -23,3 +29,7 @@ Some implemented loss functions: LossBinary (BCE + Jaccard), Dice Loss, Focal Lo
 - The configuration can be modified using [Hydra](https://hydra.cc/)
 
 - Run `python src/train.py` to start training the model.
+
+## Optional: Deploy with Triton and CVAT
+- Checkpoints: https://drive.google.com/file/d/1BKEtCd3AjOtt2u7DYAUlouIiYQILgCPL/view?usp=sharing
+- Read README.md in folder triton/ and cvat/ for more details
