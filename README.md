@@ -13,7 +13,7 @@ Mid-Term Project for Computer Vision Class INT3412E 20
 
 This repo was made by UET-VNU students
 
-Topic: Semantic Segmentation on Satellite Imagery Dataset, namely Airbus Ship Detection Dataset (Dataset: [Kaggle](https://www.kaggle.com/competitions/airbus-ship-detection/data).
+Topic: Semantic Segmentation on Satellite Imagery Dataset, namely Airbus Ship Detection Dataset (Dataset: [Kaggle](https://www.kaggle.com/competitions/airbus-ship-detection/data)).
 
 Main Technologies: PyTorch, Lightning, Hydra, WanDB
 
