@@ -3,6 +3,10 @@ import torch.nn as nn
 import numpy as np
 from einops import rearrange, repeat
 
+"""
+Implementation from https://github.com/mkara44/transunet_pytorch 
+"""
+
 
 class MultiHeadAttention(nn.Module):
     def __init__(self, embedding_dim, head_num):
@@ -17,7 +21,9 @@ class MultiHeadAttention(nn.Module):
     def forward(self, x, mask=None):
         qkv = self.qkv_layer(x)
 
-        query, key, value = tuple(rearrange(qkv, 'b t (d k h ) -> k b h t d ', k=3, h=self.head_num))
+        query, key, value = tuple(
+            rearrange(qkv, "b t (d k h ) -> k b h t d ", k=3, h=self.head_num)
+        )
         energy = torch.einsum("... i d , ... j d -> ... i j", query, key) * self.dk
 
         if mask is not None:
@@ -42,7 +48,7 @@ class MLP(nn.Module):
             nn.GELU(),
             nn.Dropout(0.1),
             nn.Linear(mlp_dim, embedding_dim),
-            nn.Dropout(0.1)
+            nn.Dropout(0.1),
         )
 
     def forward(self, x):
@@ -81,7 +87,11 @@ class TransformerEncoder(nn.Module):
         super().__init__()
 
         self.layer_blocks = nn.ModuleList(
-            [TransformerEncoderBlock(embedding_dim, head_num, mlp_dim) for _ in range(block_num)])
+            [
+                TransformerEncoderBlock(embedding_dim, head_num, mlp_dim)
+                for _ in range(block_num)
+            ]
+        )
 
     def forward(self, x):
         for layer_block in self.layer_blocks:
@@ -91,14 +101,24 @@ class TransformerEncoder(nn.Module):
 
 
 class ViT(nn.Module):
-    def __init__(self, img_dim, in_channels, embedding_dim, head_num, mlp_dim,
-                 block_num, patch_dim, classification=True, num_classes=1):
+    def __init__(
+        self,
+        img_dim,
+        in_channels,
+        embedding_dim,
+        head_num,
+        mlp_dim,
+        block_num,
+        patch_dim,
+        classification=True,
+        num_classes=1,
+    ):
         super().__init__()
 
         self.patch_dim = patch_dim
         self.classification = classification
         self.num_tokens = (img_dim // patch_dim) ** 2
-        self.token_dim = in_channels * (patch_dim ** 2)
+        self.token_dim = in_channels * (patch_dim**2)
 
         self.projection = nn.Linear(self.token_dim, embedding_dim)
         self.embedding = nn.Parameter(torch.rand(self.num_tokens + 1, embedding_dim))
@@ -107,24 +127,30 @@ class ViT(nn.Module):
 
         self.dropout = nn.Dropout(0.1)
 
-        self.transformer = TransformerEncoder(embedding_dim, head_num, mlp_dim, block_num)
+        self.transformer = TransformerEncoder(
+            embedding_dim, head_num, mlp_dim, block_num
+        )
 
         if self.classification:
             self.mlp_head = nn.Linear(embedding_dim, num_classes)
 
     def forward(self, x):
-        img_patches = rearrange(x,
-                                'b c (patch_x x) (patch_y y) -> b (x y) (patch_x patch_y c)',
-                                patch_x=self.patch_dim, patch_y=self.patch_dim)
+        img_patches = rearrange(
+            x,
+            "b c (patch_x x) (patch_y y) -> b (x y) (patch_x patch_y c)",
+            patch_x=self.patch_dim,
+            patch_y=self.patch_dim,
+        )
 
         batch_size, tokens, _ = img_patches.shape
 
         project = self.projection(img_patches)
-        token = repeat(self.cls_token, 'b ... -> (b batch_size) ...',
-                       batch_size=batch_size)
+        token = repeat(
+            self.cls_token, "b ... -> (b batch_size) ...", batch_size=batch_size
+        )
 
         patches = torch.cat([token, project], dim=1)
-        patches += self.embedding[:tokens + 1, :]
+        patches += self.embedding[: tokens + 1, :]
 
         x = self.dropout(patches)
         x = self.transformer(x)
@@ -133,13 +159,15 @@ class ViT(nn.Module):
         return x
 
 
-if __name__ == '__main__':
-    vit = ViT(img_dim=128,
-              in_channels=3,
-              patch_dim=16,
-              embedding_dim=512,
-              block_num=6,
-              head_num=4,
-              mlp_dim=1024)
+if __name__ == "__main__":
+    vit = ViT(
+        img_dim=128,
+        in_channels=3,
+        patch_dim=16,
+        embedding_dim=512,
+        block_num=6,
+        head_num=4,
+        mlp_dim=1024,
+    )
     print(sum(p.numel() for p in vit.parameters()))
     print(vit(torch.rand(1, 3, 128, 128)).shape)

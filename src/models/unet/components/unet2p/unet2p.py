@@ -6,9 +6,22 @@ from src.models.unet.components.unet2p.layers import unetConv2, unetUp_origin
 from src.models.unet.components.unet2p.init_weights import init_weights
 import numpy as np
 from torchvision import models
-class UNet_2Plus(nn.Module):
 
-    def __init__(self, in_channels=3, n_classes=1, feature_scale=4, is_deconv=True, is_batchnorm=True, is_ds=True):
+"""
+Implementation from https://github.com/ZJUGiveLab/UNet-Version 
+"""
+
+
+class UNet_2Plus(nn.Module):
+    def __init__(
+        self,
+        in_channels=3,
+        n_classes=1,
+        feature_scale=4,
+        is_deconv=True,
+        is_batchnorm=True,
+        is_ds=True,
+    ):
         super(UNet_2Plus, self).__init__()
         self.is_deconv = is_deconv
         self.in_channels = in_channels
@@ -30,7 +43,6 @@ class UNet_2Plus(nn.Module):
         self.conv30 = unetConv2(filters[2], filters[3], self.is_batchnorm)
         self.maxpool3 = nn.MaxPool2d(kernel_size=2)
         self.conv40 = unetConv2(filters[3], filters[4], self.is_batchnorm)
-
 
         # upsampling
         self.up_concat01 = unetUp_origin(filters[1], filters[0], self.is_deconv)
@@ -56,9 +68,9 @@ class UNet_2Plus(nn.Module):
         # initialise weights
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
-                init_weights(m, init_type='kaiming')
+                init_weights(m, init_type="kaiming")
             elif isinstance(m, nn.BatchNorm2d):
-                init_weights(m, init_type='kaiming')
+                init_weights(m, init_type="kaiming")
 
     def forward(self, inputs):
         # column : 0
@@ -100,8 +112,12 @@ class UNet_2Plus(nn.Module):
         else:
             return final_4
 
+
 model = UNet_2Plus()
-print('# generator parameters:', 1.0 * sum(param.numel() for param in model.parameters())/1000000)
+print(
+    "# generator parameters:",
+    1.0 * sum(param.numel() for param in model.parameters()) / 1000000,
+)
 params = list(model.named_parameters())
 for i in range(len(params)):
     (name, param) = params[i]

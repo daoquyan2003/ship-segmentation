@@ -1,6 +1,10 @@
 """Lovasz-Softmax and Jaccard hinge loss in PyTorch Maxim Berman 2018 ESAT-PSI KU Leuven (MIT
 License)"""
 
+"""
+Implementation from https://github.com/bermanmaxim/LovaszSoftmax/ 
+"""
+
 import numpy as np
 import torch
 from torch import nn
@@ -40,7 +44,9 @@ def lovasz_hinge(logits, labels, per_image=True, ignore=None):
     """
     if per_image:
         loss = mean(
-            lovasz_hinge_flat(*flatten_binary_scores(log.unsqueeze(0), lab.unsqueeze(0), ignore))
+            lovasz_hinge_flat(
+                *flatten_binary_scores(log.unsqueeze(0), lab.unsqueeze(0), ignore)
+            )
             for log, lab in zip(logits, labels)
         )
     else:
@@ -145,9 +151,9 @@ class BCE_Lovasz(nn.Module):
             self.nll_loss.pos_weight = pos_weight
 
     def forward(self, logit, labels):
-        return lovasz_hinge(logit, labels, per_image=self.per_image, ignore=None) + self.nll_loss(
-            logit, labels
-        )
+        return lovasz_hinge(
+            logit, labels, per_image=self.per_image, ignore=None
+        ) + self.nll_loss(logit, labels)
 
 
 class SBCE_Lovasz(nn.Module):

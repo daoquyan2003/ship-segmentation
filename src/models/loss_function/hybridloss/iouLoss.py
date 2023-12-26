@@ -1,8 +1,11 @@
 import torch
 
+"""
+Implementation of IoU Loss from https://github.com/ZJUGiveLab/UNet-Version
+"""
+
 
 def _iou(pred, target, size_average=True):
-
     b = pred.shape[0]
     IoU = 0.0
     for i in range(0, b):
@@ -23,7 +26,6 @@ class IOU(torch.nn.Module):
         self.size_average = size_average
 
     def forward(self, pred, target):
-
         return _iou(pred, target, self.size_average)
 
 

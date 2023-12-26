@@ -5,7 +5,6 @@ from src.models.loss_function.hybridloss.iouLoss import IOU
 from src.models.loss_function.hybridloss.msssim_loss import MSSSIM_Loss
 from src.models.loss_function.hybridloss.focalLoss import FocalLoss
 
-
 class HybridLoss(nn.Module):
     def __init__(self):
         super().__init__()

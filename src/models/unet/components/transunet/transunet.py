@@ -4,14 +4,20 @@ from einops import rearrange
 
 from src.models.unet.components.transunet.vit import ViT
 
+"""
+Implementation from https://github.com/mkara44/transunet_pytorch 
+"""
+
 
 class EncoderBottleneck(nn.Module):
     def __init__(self, in_channels, out_channels, stride=1, base_width=64):
         super().__init__()
 
         self.downsample = nn.Sequential(
-            nn.Conv2d(in_channels, out_channels, kernel_size=1, stride=stride, bias=False),
-            nn.BatchNorm2d(out_channels)
+            nn.Conv2d(
+                in_channels, out_channels, kernel_size=1, stride=stride, bias=False
+            ),
+            nn.BatchNorm2d(out_channels),
         )
 
         width = int(out_channels * (base_width / 64))
@@ -19,7 +25,16 @@ class EncoderBottleneck(nn.Module):
         self.conv1 = nn.Conv2d(in_channels, width, kernel_size=1, stride=1, bias=False)
         self.norm1 = nn.BatchNorm2d(width)
 
-        self.conv2 = nn.Conv2d(width, width, kernel_size=3, stride=2, groups=1, padding=1, dilation=1, bias=False)
+        self.conv2 = nn.Conv2d(
+            width,
+            width,
+            kernel_size=3,
+            stride=2,
+            groups=1,
+            padding=1,
+            dilation=1,
+            bias=False,
+        )
         self.norm2 = nn.BatchNorm2d(width)
 
         self.conv3 = nn.Conv2d(width, out_channels, kernel_size=1, stride=1, bias=False)
@@ -50,14 +65,16 @@ class DecoderBottleneck(nn.Module):
     def __init__(self, in_channels, out_channels, scale_factor=2):
         super().__init__()
 
-        self.upsample = nn.Upsample(scale_factor=scale_factor, mode='bilinear', align_corners=True)
+        self.upsample = nn.Upsample(
+            scale_factor=scale_factor, mode="bilinear", align_corners=True
+        )
         self.layer = nn.Sequential(
             nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=1),
             nn.BatchNorm2d(out_channels),
             nn.ReLU(inplace=True),
             nn.Conv2d(out_channels, out_channels, kernel_size=3, stride=1, padding=1),
             nn.BatchNorm2d(out_channels),
-            nn.ReLU(inplace=True)
+            nn.ReLU(inplace=True),
         )
 
     def forward(self, x, x_concat=None):
@@ -71,10 +88,21 @@ class DecoderBottleneck(nn.Module):
 
 
 class Encoder(nn.Module):
-    def __init__(self, img_dim, in_channels, out_channels, head_num, mlp_dim, block_num, patch_dim):
+    def __init__(
+        self,
+        img_dim,
+        in_channels,
+        out_channels,
+        head_num,
+        mlp_dim,
+        block_num,
+        patch_dim,
+    ):
         super().__init__()
 
-        self.conv1 = nn.Conv2d(in_channels, out_channels, kernel_size=7, stride=2, padding=3, bias=False)
+        self.conv1 = nn.Conv2d(
+            in_channels, out_channels, kernel_size=7, stride=2, padding=3, bias=False
+        )
         self.norm1 = nn.BatchNorm2d(out_channels)
         self.relu = nn.ReLU(inplace=True)
 
@@ -83,10 +111,20 @@ class Encoder(nn.Module):
         self.encoder3 = EncoderBottleneck(out_channels * 4, out_channels * 8, stride=2)
 
         self.vit_img_dim = img_dim // patch_dim
-        self.vit = ViT(self.vit_img_dim, out_channels * 8, out_channels * 8,
-                       head_num, mlp_dim, block_num, patch_dim=1, classification=False)
+        self.vit = ViT(
+            self.vit_img_dim,
+            out_channels * 8,
+            out_channels * 8,
+            head_num,
+            mlp_dim,
+            block_num,
+            patch_dim=1,
+            classification=False,
+        )
 
-        self.conv2 = nn.Conv2d(out_channels * 8, 512, kernel_size=3, stride=1, padding=1)
+        self.conv2 = nn.Conv2d(
+            out_channels * 8, 512, kernel_size=3, stride=1, padding=1
+        )
         self.norm2 = nn.BatchNorm2d(512)
 
     def forward(self, x):
@@ -115,7 +153,9 @@ class Decoder(nn.Module):
         self.decoder1 = DecoderBottleneck(out_channels * 8, out_channels * 2)
         self.decoder2 = DecoderBottleneck(out_channels * 4, out_channels)
         self.decoder3 = DecoderBottleneck(out_channels * 2, int(out_channels * 1 / 2))
-        self.decoder4 = DecoderBottleneck(int(out_channels * 1 / 2), int(out_channels * 1 / 8))
+        self.decoder4 = DecoderBottleneck(
+            int(out_channels * 1 / 2), int(out_channels * 1 / 8)
+        )
 
         self.conv1 = nn.Conv2d(int(out_channels * 1 / 8), class_num, kernel_size=1)
 
@@ -130,11 +170,22 @@ class Decoder(nn.Module):
 
 
 class TransUNet(nn.Module):
-    def __init__(self, img_dim, in_channels, out_channels, head_num, mlp_dim, block_num, patch_dim, class_num):
+    def __init__(
+        self,
+        img_dim,
+        in_channels,
+        out_channels,
+        head_num,
+        mlp_dim,
+        block_num,
+        patch_dim,
+        class_num,
+    ):
         super().__init__()
 
-        self.encoder = Encoder(img_dim, in_channels, out_channels,
-                               head_num, mlp_dim, block_num, patch_dim)
+        self.encoder = Encoder(
+            img_dim, in_channels, out_channels, head_num, mlp_dim, block_num, patch_dim
+        )
 
         self.decoder = Decoder(out_channels, class_num)
 
@@ -145,17 +196,19 @@ class TransUNet(nn.Module):
         return x
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     import torch
 
-    transunet = TransUNet(img_dim=256,
-                          in_channels=3,
-                          out_channels=128,
-                          head_num=8,
-                          mlp_dim=1024,
-                          block_num=12,
-                          patch_dim=16,
-                          class_num=1)
+    transunet = TransUNet(
+        img_dim=256,
+        in_channels=3,
+        out_channels=128,
+        head_num=8,
+        mlp_dim=1024,
+        block_num=12,
+        patch_dim=16,
+        class_num=1,
+    )
 
     print(sum(p.numel() for p in transunet.parameters()))
     print(transunet(torch.randn(4, 3, 256, 256)).shape)

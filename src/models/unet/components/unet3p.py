@@ -10,6 +10,10 @@ from src.models.unet.components.unet2p.layers import unetConv2
 #     UNet 3+
 # """
 
+"""
+Implementation from https://github.com/ZJUGiveLab/UNet-Version 
+"""
+
 
 class UNet_3Plus(nn.Module):
     def __init__(

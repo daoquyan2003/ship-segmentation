@@ -1,6 +1,10 @@
 import torch.nn.functional as F
 from torch import nn
 
+"""
+Implementation of Focal Tversky Loss from https://github.com/Mr-TalhaIlyas/Loss-Functions-Package-Tensorflow-Keras-PyTorch 
+"""
+
 # Using alpha = beta = 0.5 and gamma = 1 for DiceLoss
 
 
@@ -12,7 +16,6 @@ class FocalTverskyLoss(nn.Module):
         self.gamma = gamma
 
     def forward(self, outputs, targets, smooth=1):
-
         # comment out if your model contains a sigmoid or equivalent activation layer
         outputs = F.sigmoid(outputs)
 
