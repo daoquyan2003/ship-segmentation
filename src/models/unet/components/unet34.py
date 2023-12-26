@@ -5,8 +5,8 @@ from torchvision.models import (
     resnet34,
 )
 
-from models.classifier.classifier_module import ResNetLitModule
-from models.unet.components.resnet34 import ResNet34_Binary
+# from models.classifier.classifier_module import ResNetLitModule
+# from models.unet.components.resnet34 import ResNet34_Binary
 
 class Resnet(torch.nn.Module):
     def __init__(self, sequence: torch.nn.Sequential) -> None:
@@ -42,13 +42,13 @@ class Unet34(torch.nn.Module):
         super().__init__()
         self.ckpt_path = ckpt_path
         if self.ckpt_path is not None:
-            model = ResNetLitModule.load_from_checkpoint(
-                checkpoint_path=self.ckpt_path,
-                net=ResNet34_Binary(),
-                criterion=torch.nn.BCEWithLogitsLoss(),
-            ).net
-            p_rn34_feature_extractor = torch.nn.Sequential(*list(model.rn.children())[:-2])
-            self.rn = p_rn34_feature_extractor
+            # model = ResNetLitModule.load_from_checkpoint(
+            #     checkpoint_path=self.ckpt_path,
+            #     net=ResNet34_Binary(),
+            #     criterion=torch.nn.BCEWithLogitsLoss(),
+            # ).net
+            # p_rn34_feature_extractor = torch.nn.Sequential(*list(model.rn.children())[:-2])
+            # self.rn = p_rn34_feature_extractor
             print("Using pretrained classifier")
         else:
             rn34 = resnet34(weights=ResNet34_Weights.DEFAULT)
