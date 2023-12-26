@@ -13,7 +13,7 @@ Mid-Term Project for Computer Vision Class INT3412E 20
 
 This repo was made by UET-VNU students
 
-Topic: Semantic Segmentation on Satellite Imagery Dataset, namely Airbus Ship Detection Dataset (Dataset: https://www.kaggle.com/competitions/airbus-ship-detection/data).
+Topic: Semantic Segmentation on Satellite Imagery Dataset, namely Airbus Ship Detection Dataset (Dataset: [Kaggle](https://www.kaggle.com/competitions/airbus-ship-detection/data).
 
 Main Technologies: PyTorch, Lightning, Hydra, WanDB
 
@@ -87,5 +87,5 @@ Here are our results obtained from experiments:
 
 ## Optional: Deploy with Triton and CVAT
 
-- Checkpoints model U-Net34 + Lovasz Loss + size 768x768 + subset 12000: https://drive.google.com/file/d/1BKEtCd3AjOtt2u7DYAUlouIiYQILgCPL/view?usp=sharing
+- Checkpoints model U-Net34 + Lovasz Loss + size 768x768 + subset 12000: [Checkpoint](https://drive.google.com/file/d/1BKEtCd3AjOtt2u7DYAUlouIiYQILgCPL/view?usp=sharing)
 - Read README.md in folder triton/ and cvat/ for more details
